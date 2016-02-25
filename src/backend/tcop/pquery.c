@@ -726,7 +726,6 @@ PortalRun(Portal portal, long count, bool isTopLevel,
 
 	if (log_executor_stats && portal->strategy != PORTAL_MULTI_QUERY)
 	{
-		elog(DEBUG3, "PortalRun");
 		/* PORTAL_MULTI_QUERY logs its own stats per query */
 		ResetUsage();
 	}
@@ -809,6 +808,7 @@ PortalRun(Portal portal, long count, bool isTopLevel,
 				break;
 
 			case PORTAL_MULTI_QUERY:
+
 				PortalRunMulti(portal, isTopLevel,
 							   dest, altdest, completionTag);
 

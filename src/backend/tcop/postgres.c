@@ -75,6 +75,9 @@
 #include "utils/timestamp.h"
 #include "mb/pg_wchar.h"
 
+/* Added by Prince */
+#include <sys/time.h>
+
 
 /* ----------------
  *		global variables
@@ -885,6 +888,17 @@ exec_simple_query(const char *query_string)
 	/*
 	 * Report query to various monitoring facilities.
 	 */
+
+	struct timeval start,end; 
+
+	/*
+	 * About time
+	 */
+
+	gettimeofday(&start, NULL );
+
+	elog(LOG, "In exec_simple_query(), start time=%f\n", ( 1000000 * start.tv_sec  + start.tv_usec) / 1000000.0 );
+
 	debug_query_string = query_string;
 
 	pgstat_report_activity(STATE_RUNNING, query_string);
@@ -1178,6 +1192,14 @@ exec_simple_query(const char *query_string)
 	TRACE_POSTGRESQL_QUERY_DONE(query_string);
 
 	debug_query_string = NULL;
+
+	gettimeofday(&end, NULL );
+
+	elog(LOG, "In exec_simple_query(), end time=%f\n", ( 1000000 * end.tv_sec  + end.tv_usec) / 1000000.0 );
+
+	long timeuse =1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;
+
+	elog(LOG, "In exec_simple_query(), running time=%f\n", timeuse /1000000.0 );
 }
 
 /*
@@ -3554,6 +3576,8 @@ PostgresMain(int argc, char *argv[],
 	sigjmp_buf	local_sigjmp_buf;
 	volatile bool send_ready_for_query = true;
 
+	elog(LOG, "PostgreMain!");
+
 	/* Initialize startup process environment if necessary. */
 	if (!IsUnderPostmaster)
 		InitStandaloneProcess(argv[0]);
@@ -3700,6 +3724,8 @@ PostgresMain(int argc, char *argv[],
 	 * involves database access should be there, not here.
 	 */
 	InitPostgres(dbname, InvalidOid, username, InvalidOid, NULL);
+
+	elog(LOG, "Hello postgresmain");
 
 	/*
 	 * If the PostmasterContext is still around, recycle the space; we don't

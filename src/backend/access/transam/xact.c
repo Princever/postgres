@@ -19,6 +19,7 @@
 
 #include <time.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "access/commit_ts.h"
 #include "access/multixact.h"
@@ -4923,11 +4924,20 @@ EndParallelWorkerTransaction(void)
 static void
 ShowTransactionState(const char *str)
 {
+	struct timeval nowtime;
+
+	gettimeofday(&nowtime, NULL );
+
+	char s1[]="StartTransaction",s2[]="CommitTransaction";
 	/* skip work if message will definitely not be printed */
 	if (log_min_messages <= DEBUG3 || client_min_messages <= DEBUG3)
 	{
 		elog(DEBUG3, "%s", str);
 		ShowTransactionStateRec(CurrentTransactionState);
+		if ( strcmp(str,s1) == 0 )
+			elog(WARNING, "time start: %f, pid: %d", ( 1000000 * nowtime.tv_sec  + nowtime.tv_usec) / 1000000.0, (int)getpid());
+		if ( strcmp(str,s2) == 0 )
+			elog(WARNING, "time end: %f, pid: %d", ( 1000000 * nowtime.tv_sec  + nowtime.tv_usec) / 1000000.0, (int)getpid());
 	}
 }
 
@@ -4956,7 +4966,7 @@ ShowTransactionStateRec(TransactionState s)
 
 	/* use ereport to suppress computation if msg will not be printed */
 	ereport(DEBUG3,
-			(errmsg_internal("name: %s; blockState: %13s; state: %7s, xid/subid/cid: %u/%u/%u%s, nestlvl: %d, children: %s",
+			(errmsg_internal("name: %s; blockState: %13s; state: %7s, xid/subid/cid: %u/%u/%u%s, nestlvl: %d, children: %s, pid: %d",
 							 PointerIsValid(s->name) ? s->name : "unnamed",
 							 BlockStateAsString(s->blockState),
 							 TransStateAsString(s->state),
@@ -4964,7 +4974,8 @@ ShowTransactionStateRec(TransactionState s)
 							 (unsigned int) s->subTransactionId,
 							 (unsigned int) currentCommandId,
 							 currentCommandIdUsed ? " (used)" : "",
-							 s->nestingLevel, buf.data)));
+							 s->nestingLevel, buf.data,
+							 (int)getpid())));
 
 	pfree(buf.data);
 }

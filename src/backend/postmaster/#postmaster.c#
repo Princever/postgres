@@ -570,8 +570,6 @@ PostmasterMain(int argc, char *argv[])
 
 	IsPostmasterEnvironment = true;
 
-	elog(LOG, "PostmasterMain!");
-
 	/*
 	 * for security, no dir or file created can be group or other accessible
 	 */
@@ -4212,8 +4210,6 @@ BackendRun(Port *port)
 	/* slightly hacky way to convert timestamptz into integers */
 	TimestampDifference(0, port->SessionStartTime, &secs, &usecs);
 	srandom((unsigned int) (MyProcPid ^ (usecs << 12) ^ secs));
-
-	elog(LOG, "Backend Run:%d", (int)getpid());
 
 	/*
 	 * Now, build the argv vector that will be given to PostgresMain.

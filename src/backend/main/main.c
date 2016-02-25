@@ -221,6 +221,7 @@ main(int argc, char *argv[])
 					 strdup(get_user_name_or_exit(progname)));	/* does not return */
 	else
 		PostmasterMain(argc, argv);		/* does not return */
+
 	abort();					/* should not get here */
 }
 
